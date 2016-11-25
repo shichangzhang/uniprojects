@@ -1,0 +1,39 @@
+_______________________________________________________________________________
+
+		~Welcome to Chang's Mastermind Game Server!~
+_______________________________________________________________________________
+
+	INTRO: Chang is trying to break into his friend's computer but
+	       it is protected by a code!
+
+               (It is rumoured that this code is unbreakable!)
+
+	       Chang is not patient enough to try all the possibilities.
+	       SO! He wants to hire you as his 'codebreaker'!
+
+  HOW TO PLAY: As 'codebreaker' you will have 10 attempts to break the 
+	       code before Chang's friend will realise that you're
+	       trying to steal his secret files.
+	       
+	       For each attempt, you must enter a 4 colour code.
+	       A colour is one of { A, B, C, D, E, F }.
+	       (NOTE: Duplicates are allowed!)
+
+	       If your guess is INVALID, the server will respond 
+               with INVALID.
+
+	       If your guess is VALID, the server will respond with
+	       SUCCESS if you guessed correctly, otherwise it will return
+	       a hint [b:m].
+
+	       b - is the number of correct colours in your code AND
+	       also in the correct position.
+
+	       m - is the number of correct colours in your code AND
+	       NOT in the correct position.
+
+_______________________________________________________________________________
+
+				  HAVE FUN!
+_______________________________________________________________________________
+ 

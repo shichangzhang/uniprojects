@@ -1,0 +1,9 @@
+shiz2, 695434
+COMP30023 Computer Systems Project 2
+Semester 1, 2016
+
+VM's IP address:
+115.146.95.237
+
+Port number:
+1337

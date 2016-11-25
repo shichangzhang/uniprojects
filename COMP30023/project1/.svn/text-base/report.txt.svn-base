@@ -1,0 +1,76 @@
+COMP30023 Computer Systems
+Project 1, Part B
+Semester 1, 2016
+
+report.txt
+
+by Shi Chang Zhang, shiz2, 695434
+
+First-come first-served scheduling algorithm:
+As mentioned in the project specification, this is a queue simply 
+containing a list of process to be scheduled. Once a process begins
+it continues executing until it is complete.
+
+Since fcfs always allows a process to run to completion, the size
+of a process does not affect the average waiting time. 
+
+To illustrate this I have used ./processGen, a program that I wrote 
+for generating test cases.
+
+./processGen 100 100 fixed 5 random 2 fixed > fcfs_test1.txt
+./processGen 100 100 random 5 random 2 fixed > fcfs_test2.txt
+
+For both cases 100 processes, with a run time of 5, are created and added to the 
+fcfs queue at every 2 time units. The only difference being the process sizes.
+
+./simulation -f fcfs_test1.txt -a fcfs -m 100  
+./simulation -f fcfs_test2.txt -a fcfs -m 100
+
+Both produced an average waiting time of 148.50 time units. For fcfs,
+the number of processes in memory and the number of holes is always 1 or 0.
+So for fcfs, the average waiting time is only affected by the run times of
+processes and when they are created.
+
+Multi-level feedback queue:
+A muli-level feedback queue contains a number of queues, each with a different
+priority level. When a process is created, it is added to the queue with the
+highest priority, and is allocated a fixed quantum. If it does not finished
+running within the allocated time, the process is moved to the level with the next highest
+priority and is allocated a longer quantum. In the lowest priority level, if
+processes still do not run to completion, they are added back to queue at this
+priority level.
+
+To test the behaviour of multi with respect to fcfs the following was run
+
+./simulation -f fcfs_test1.txt -a multi -m 100
+./simulation -f fcfs_test2.txt -a multi -m 100
+
+Both cases had an average waiting time of 247.50 time units, which I thought
+was odd because I thought having processes of different sizes would change the average
+wait time. Since the time needed for swapping processes in and out of memory was
+not modelled in my simulation, the average wait times remained unchanged, but
+the number of holes increased.
+
+Now having realised that memory does not affect the average wait times, to
+further test the relationship of average wait times between fcfs and multi, I
+have created 2 more test cases using the following:
+
+./processGen 100 100 random 20 random 10 fixed > multi_test1.txt
+./processGen 100 100 random 20 fixed 10 fixed > multi_test2.txt
+
+Running the simulation with fcfs had average waiting times of 27.07 and 495.00
+time units, whilst with multi had average waiting times of 42.50 and 987.38
+time units. Although multi had longer average waiting times, it had more
+processes in mmemory, where as fcfs always had 1 or 0 processes in memory.
+
+Conclusion:
+Since the time taken to swap processes in and out of memory was not modelled,
+both fcfs and multi take the same time to complete any given simulation. Fcfs,
+in general has a lower average waiting time according to this simulation. The
+affects of the process size and the size of memory affect the number of
+process that can be stored in memory. 
+
+Fcfs only ever has 1 or 0 processes in memory, whereas multi can have more than 1 process 
+in memory. Since, realistically, accessing from memory requires less time units than
+accessing from disk, multi may run faster than fcfs, but due to limitions of
+this model, no concrete conclusion as to which scheduling algorithm is better can be drawn.

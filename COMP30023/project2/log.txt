@@ -1,0 +1,9 @@
+Total connected clients=0
+Number of successes=0
+Server shutdown
+Virtual Memory used = 83165184 bytes
+
+Physical Memory used = 93388800 bytes
+
+[23 11 2016 22:25:23] (127.0.0.1)(soc_id 4) client connected
+[23 11 2016 22:25:23] (0.0.0.0) server secret = ECBD

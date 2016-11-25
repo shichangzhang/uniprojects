@@ -1,0 +1,208 @@
+/* COMP30023 Computer Systems
+* Project 1
+* 
+* main.c
+*  
+* by Shi Chang Zhang, shiz2, 695434
+* 
+* Description: 
+* 
+* Last modified: 14/4/16
+*/
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include "process.h"
+#include "reader.h"
+#include "queue.h"
+#include "memory.h"
+
+#define NUM_ARGS 7
+#define FCFS 1
+#define MULTI 0
+
+extern  int     optind;
+extern  char    *optarg;
+
+int main(int argc, char **argv){
+	
+	if(argc != NUM_ARGS){
+		printf("Usage: ./simulation "
+			"-f [input.txt] "
+			"-a [fcfs or multi] "
+			"-m [memsize in MB]\n");
+		exit(EXIT_FAILURE);
+	}
+	
+	char input;
+	char *input_file = NULL;
+	int algorithm;
+	int mem_size = 0;
+	int num_processes = 0;
+	int i;
+	int time;
+	int process_count;
+	int quantum;
+	int quantums[NUM_LEVELS] = {Q1,Q2,Q3}; 
+	process_ptr processes;
+	mem_list memory;
+	seg_ptr cpu;
+	node_ptr temp, temp2;
+	
+	while ((input = getopt(argc,argv,"f:a:m:")) != EOF){
+		switch (input){
+		case 'f':
+			input_file = optarg;
+			if(input_file == NULL){
+				fprintf(stderr, "Error: No input file\n");
+				exit(EXIT_FAILURE);
+			}
+			break;
+			
+		case 'a':
+			if(strcmp("fcfs",optarg)==0){
+				algorithm = FCFS;
+			} else if(strcmp("multi",optarg)==0){
+				algorithm = MULTI;
+			} else {
+				fprintf(stderr,"Error: Algorithm should be " 
+					"either 'fcfs' or 'multi'\n");
+				exit(EXIT_FAILURE);
+			}
+			break;
+			
+		case 'm': 
+			mem_size = atoi(optarg);
+			if(mem_size <= 0){
+				fprintf(stderr,"Error: Zero or "
+					"negative memory\n");
+				exit(EXIT_FAILURE);	
+			}
+			break;
+			
+		default:
+			/* Do nothing. */
+			break;
+		} 
+	}
+	
+	processes = (process_ptr)read_input(input_file,&num_processes);
+	
+	for(i=0;i<num_processes;i++){
+		printf("%d %d %d %d\n",
+			(processes[i].time_created),
+			(processes[i].process_id),
+			(processes[i].memory_size),
+			(processes[i].job_time));
+	}
+	
+	time = 0;
+	printf("memory size = %d\n",mem_size);
+	memory = memory_init(mem_size);
+	cpu = NULL;
+	
+	if(algorithm == FCFS){
+		fcfs_ptr queue = (fcfs_ptr)fcfs_init_queue();
+		for(i=0;i<num_processes;i++){
+			fcfs_add_process(queue, processes[i]);			
+		}
+		temp = queue->process_q;
+		while(temp!=NULL){
+			printf("pid: %d, time: %d\n",
+				temp->process.process_id,
+				temp->process.job_time);
+			temp = temp->next;
+		}
+		temp = NULL;
+		while(queue->process_q != NULL || cpu!=NULL){
+			if(cpu == NULL){
+				temp = fcfs_get_process(queue);
+				cpu = run_process(memory, temp, time);
+				printf("time %d, %d running, "
+					"numprocesses=%d, "
+					"numholes=%d, "
+					"memusage=%d%%\n",
+					time,
+					temp->process.process_id,
+					memory->num_processes,
+					memory->num_holes, 
+					get_usage(memory));
+				//print_memory(memory);
+			}
+			temp->remaining_job_time--;
+			if(temp->remaining_job_time == 0){
+				free(temp);
+				free_segment(memory, cpu);
+				cpu = NULL;
+			}
+			time++;	
+			
+		}
+		printf("time %d, simulation finished.\n", time);
+	} else if(algorithm == MULTI){
+		multi_ptr queue = (multi_ptr)multi_init_queue();
+		process_count = 0;
+		while((queue->queues[LEVEL1])->process_q != NULL 
+			|| (queue->queues[LEVEL1])->process_q != NULL
+			|| (queue->queues[LEVEL1])->process_q != NULL
+			|| process_count<num_processes
+			|| cpu!=NULL){
+			for(i=0;i<num_processes;i++){
+				if(processes[i].time_created == time){
+					fcfs_add_process(queue->queues[LEVEL1], processes[i]);
+				}
+			}
+			/*for(i=0;i<NUM_LEVELS;i++){
+				printf("Q%d:\n",i+1);
+				if(queue->queues[i] != NULL){
+					temp2 = (queue->queues[i])->process_q;
+					while(temp2!=NULL){
+						printf("pid: %d, time: %d\n",
+							temp2->process.process_id,
+							temp2->process.job_time);
+						temp2 = temp2->next;
+					}
+				} else {
+					printf("EMPTY\n");
+				}
+			}*/
+			if(cpu == NULL){
+				temp = multi_get_process(queue);
+				cpu = run_process(memory, temp, time);
+				if(temp!=NULL){
+					quantum = quantums[temp->level];
+					printf("time %d, %d running, "
+						"numprocesses=%d, "
+						"numholes=%d, "
+						"memusage=%d%%\n",
+						time,
+						temp->process.process_id,
+						memory->num_processes,
+						memory->num_holes, 
+						get_usage(memory));
+				}
+				//print_memory(memory);
+			}
+			temp->remaining_job_time--;
+			quantum--;
+			if(temp->remaining_job_time == 0){
+				free(temp);
+				free_segment(memory, cpu);
+				cpu = NULL;
+				process_count++;
+			} else if(quantum == 0){
+				multi_enqueue(queue, temp);
+				cpu = NULL;
+			}
+			time++;	
+			
+			
+		}
+		printf("time %d, simulation finished.\n", time);
+	}
+	
+	free(processes);
+	return 0;
+}

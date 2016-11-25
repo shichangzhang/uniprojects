@@ -1,0 +1,72 @@
+/* COMP30023 Computer Systems
+* Project 1
+* 
+* multi.c
+*  
+* by Shi Chang Zhang, shiz2, 695434
+* 
+* Description: 
+* 
+* Last modified: 12/4/16
+*/
+
+#include <stdio.h>
+#include <stdlib.h>
+#include "process.h"
+#include "queue.h"
+#include "memory.h"
+
+multi_ptr multi_init_queue(){
+	int i;
+	multi_ptr queue = (multi_ptr)malloc(sizeof(multi_t));
+	
+	if(queue == NULL){
+		fprintf(stderr,"Error: Failed to initialize fcfs queue\n");
+		exit(EXIT_FAILURE);	
+	}
+	
+	for(i=0;i<NUM_LEVELS;i++){
+		queue->queues[i] = fcfs_init_queue();	
+	}
+	
+	return queue;
+}
+
+void multi_enqueue(multi_ptr queue, node_ptr process){
+	if(queue == NULL){
+		fprintf(stderr,"Error: Queue is NULL\n");
+		exit(EXIT_FAILURE);	
+	}
+	if(process == NULL){
+		fprintf(stderr,"Error: Process is NULL\n");
+		exit(EXIT_FAILURE);	
+	}
+	if(process->level == LEVEL1 || process->level == LEVEL2){
+		process->level++;
+		fcfs_enqueue(queue->queues[process->level], process);
+	} else if(process->level == LEVEL3){
+		fcfs_enqueue(queue->queues[process->level], process);
+	} else {
+		fprintf(stderr,"Error: Process level is out of bounds\n");
+		exit(EXIT_FAILURE);	
+	}
+}
+node_ptr multi_get_process(multi_ptr queue){
+	if(queue == NULL){
+		fprintf(stderr,"Error: Queue is NULL\n");
+		exit(EXIT_FAILURE);	
+	}
+	
+	int level = LEVEL1;
+	node_ptr temp;
+	
+	while(level < NUM_LEVELS){
+		temp = fcfs_get_process(queue->queues[level]);
+		if(temp!=NULL){
+			return temp;	
+		}
+		level++;
+	}
+	return NULL;
+
+}
